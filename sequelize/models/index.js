@@ -1,18 +1,27 @@
 "use strict";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import path from "path";
 import Sequelize from "sequelize";
 import process from "process";
-const basename = path.basename(__filename);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Resolve __filename and __dirname using import.meta.url
+
 const env = process.env.NODE_ENV || "development";
-const config = import(__dirname + "/../config/config.json")[env];
+const configPath = path.join(__dirname, "../../config/config.json");
+
+// Ensure config path is correct
+const config = (await import(configPath)).default[env];
 const db = {};
 
 let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
   console.log(
-    `\n******************** Successfuly established connection to ${
+    `\n******************** Successfully established connection to ${
       sequelize?.options?.dialect
     } DB(${
       sequelize?.options?.database
@@ -29,7 +38,8 @@ if (config.use_env_variable) {
   );
 }
 
-fs.readdirSync(__dirname)
+const modelsPath = __dirname;
+fs.readdirSync(modelsPath)
   .filter((file) => {
     return (
       file.indexOf(".") !== 0 &&
@@ -38,11 +48,10 @@ fs.readdirSync(__dirname)
       file.indexOf(".test.js") === -1
     );
   })
-  .forEach((file) => {
-    const model = import(path.join(__dirname, file))(
-      sequelize,
-      Sequelize.DataTypes
-    );
+  .forEach(async (file) => {
+    const modelPath = join(modelsPath, file);
+    const modelModule = await import(`file://${modelPath}`);
+    const model = modelModule.default(sequelize, Sequelize.DataTypes);
     db[model.name] = model;
   });
 
