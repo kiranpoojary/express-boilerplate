@@ -1,0 +1,56 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "postgres",
+    "database": "testdb",
+    "host": "localhost",
+    "dialect": "postgres",
+    "logging": false,
+    "pool": {
+      "max": 3,
+      "evict": 30000,
+      "idle": 30000,
+      "acquire": 60000
+    },
+    "define": {
+      "timestamps": true,
+      "freezeTableName": false
+    }
+  },
+  "test": {
+    "username": "postgres",
+    "password": "postgres",
+    "database": "",
+    "host": "",
+    "dialect": "postgres",
+    "logging": false,
+    "pool": {
+      "max": 3,
+      "evict": 30000,
+      "idle": 30000,
+      "acquire": 60000
+    },
+    "define": {
+      "timestamps": true,
+      "freezeTableName": false
+    }
+  },
+  "production": {
+    "username": "postgres",
+    "password": "postgres",
+    "database": "",
+    "host": "",
+    "dialect": "postgres",
+    "logging": false,
+    "pool": {
+      "max": 3,
+      "evict": 30000,
+      "idle": 30000,
+      "acquire": 60000
+    },
+    "define": {
+      "timestamps": true,
+      "freezeTableName": false
+    }
+  }
+}
