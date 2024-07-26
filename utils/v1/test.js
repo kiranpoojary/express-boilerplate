@@ -4,8 +4,6 @@ import sequelizeModule from "../../sequelize/index.js";
 const { db, models } = sequelizeModule;
 const { Users } = models;
 
-console.log({ Users });
-
 export async function testMongoUtil() {
   try {
     const userCollection = new MongoCRUD("users");
@@ -26,7 +24,7 @@ export async function testSeqluelizeUtil() {
   try {
     const userCollection = new MongoCRUD("users");
     await userCollection.initialize();
-    const result = await userCollection.findOne();
+    const result = await Users.findOne();
     return { statusCode: 200, message: "Server is up.", user: result };
   } catch (error) {
     console.log(error);
