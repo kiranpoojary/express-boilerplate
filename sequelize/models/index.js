@@ -1,20 +1,21 @@
 "use strict";
 import fs from "fs";
-import { fileURLToPath } from "url";
 import path from "path";
+import { fileURLToPath } from "url";
 import Sequelize from "sequelize";
 import process from "process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Resolve __filename and __dirname using import.meta.url
-
+const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || "development";
-const configPath = path.join(__dirname, "../../config/config.json");
 
-// Ensure config path is correct
-const config = (await import(configPath)).default[env];
+const config = (
+  await import("../config/config.json", {
+    assert: { type: "json" },
+  })
+).default[env];
+
 const db = {};
 
 let sequelize;
@@ -38,23 +39,24 @@ if (config.use_env_variable) {
   );
 }
 
-const modelsPath = __dirname;
-fs.readdirSync(modelsPath)
-  .filter((file) => {
-    return (
-      file.indexOf(".") !== 0 &&
-      file !== basename &&
-      file.slice(-3) === ".js" &&
-      file.indexOf(".test.js") === -1
-    );
-  })
-  .forEach(async (file) => {
-    const modelPath = join(modelsPath, file);
-    const modelModule = await import(`file://${modelPath}`);
-    const model = modelModule.default(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
+// Read and import model files
+const modelFiles = fs.readdirSync(__dirname).filter((file) => {
+  return (
+    file.indexOf(".") !== 0 &&
+    file !== basename &&
+    file.slice(-3) === ".js" &&
+    file.indexOf(".test.js") === -1
+  );
+});
 
+for (const file of modelFiles) {
+  const filePath = path.join(__dirname, file);
+  const modelModule = await import(`file://${filePath}`);
+  const model = modelModule.default(sequelize, Sequelize.DataTypes);
+  db[model.name] = model;
+}
+
+// Setup associations
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);

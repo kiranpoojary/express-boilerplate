@@ -2,9 +2,10 @@ import { MongoCRUD } from "../../mongo/dbcrud.js";
 import sequelizeModule from "../../sequelize/index.js";
 
 const { db, models } = sequelizeModule;
+const { Users } = models;
 
-console.log(db);
-console.log(models);
+console.log({ Users });
+
 export async function testMongoUtil() {
   try {
     const userCollection = new MongoCRUD("users");
