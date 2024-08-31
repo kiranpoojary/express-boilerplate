@@ -2,7 +2,6 @@ import {
   testMongoUtil,
   testPgQueryUtil,
   testSeqluelizeUtil,
-  testValidator,
 } from "../../utils/v1/test.js";
 
 export async function testMongo(req, res) {

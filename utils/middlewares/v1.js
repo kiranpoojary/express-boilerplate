@@ -1,4 +1,3 @@
-import { testValidator } from "../v1/test.js";
 import { dataValidatorV1 } from "../validator.js";
 
 export const validatePayload = ({ rule }) => {
