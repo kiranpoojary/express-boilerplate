@@ -138,6 +138,7 @@ export const SIGNUP_VALIDATION = {
     mandatory: true,
     allowNull: false,
     type: "string",
+    minLength: 3,
   },
   lastName: {
     mandatory: false,
@@ -153,8 +154,6 @@ export const SIGNUP_VALIDATION = {
     mandatory: true,
     allowNull: false,
     type: "string",
-    length: 10, //pending
-    regex: "", //pending
   },
   age: {
     mandatory: false,
