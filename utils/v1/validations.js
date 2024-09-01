@@ -1,34 +1,8 @@
-//--------DEFAULT VALUES IF NOT SPECIFIED------------
-// mandatory            : false
-// allowNull            : true
-// type 		            : any
-// min                  : ignored
-// max                  : ignored
-// preventDecimal       : false
-// enum                 : ignored
-// range                : ignored
-// dependecy 	          : ignored
-//
-// ******************************************************************************
-//
-// ---------Custom Error Message Attributes---------
-// mandatoryError       : string
-// allowNullError       : string
-// typeError            : string
-// preventDecimalError  : string
-// minError             : string
-// maxError             : string
-// regexError           : string
-// minLengthError       : string
-// maxLengthError       : string
-// emptyObjectError     : string
-// ******************************************************************************
-//
 export const EXAMPLE_VALIDATION_RULE = {
   id: {
     mandatory: true,
     allowNull: true,
-    type: "uuid",
+    type: "uuidv5",
   },
   batchId: {
     mandatory: true,
@@ -69,10 +43,15 @@ export const EXAMPLE_VALIDATION_RULE = {
   },
   accountStatus: {
     type: "enum",
-    enumValues: ["Active", "Inactive"],
+    enumValues: ["Active", "Inactive", 200],
   },
   marks: {
     range: "0-100",
+  },
+  allMarks: {
+    type: "array",
+    elementType: "string",
+    allowEmptyArray: false,
   },
   totalScore: {
     type: "number",
