@@ -1,15 +1,3 @@
-// Perfect-payload   Validation
-//DEFAULT VALUES IF NOT SPECIFIED
-// mandatory        	    : false
-// allowNull                : true
-// type 		            : any
-// min              	    : ignored
-// max              	    : ignored
-// preventDecimal   	    : false
-// enum             	    : ignored
-// range            	    : ignored
-// dependecy 	            : a function which
-
 export function dataValidatorV1(
   data = payload,
   dataValidationRule = payloadValidationRules,
@@ -17,39 +5,69 @@ export function dataValidatorV1(
   inValidPayloadResponse = {
     statusCode: 400,
     valid: false,
-    message: "One or more Invalid data found",
+    message: "One or more invalid data found",
   }
 ) {
   let rowErrors = [];
   for (const attributeName in dataValidationRule) {
     let addNextError = true;
     const attributeRules = dataValidationRule?.[attributeName];
-
+    const attrPath = dataValidationRule?.[attributeName]?.path || null;
     for (const ruleName in attributeRules) {
+      const attributePath = `${attrPath ? attrPath + "." : ""}${attributeName}`;
       const attributeValue = data?.[attributeName] ?? null;
       const nullAllowed =
         dataValidationRule?.[attributeName]?.["allowNull"] ?? true;
       const isMandatoryField = attributeRules?.["mandatory"] ?? false;
       const attrExist = Object.keys(data)?.includes(attributeName); //Mandatory value check
 
+      //mandatory value check
       if (ruleName === "mandatory" && isMandatoryField && !attrExist) {
         addNextError = false;
         rowErrors.push(
-          attributeRules?.["mandatoryError"] || `${attributeName} is mandatory`
+          attributeRules?.["mandatoryError"] || `${attributePath} is mandatory`
         );
       } else if (!attrExist) {
         addNextError = false;
-      } //allowNull value check
+      }
 
-      if (addNextError && ruleName === "allowNull" && attributeValue == null)
+      //allowNull value check
+      if (addNextError && ruleName === "allowNull" && attributeValue == null) {
         if (!dataValidationRule?.[attributeName]?.[ruleName]) {
           addNextError = false;
           rowErrors.push(
             attributeRules?.["allowNullError"] ||
-              `value null/'' not valid for attribute ${attributeName}`
+              `value null/'' not valid for attribute ${attributePath}`
           );
-        } //value type check
+        }
+      }
 
+      //allowEmptyObject check
+      if (addNextError && ruleName === "allowEmptyObject") {
+        if (
+          !attributeRules?.["allowEmptyObject"] &&
+          Object.keys(attributeValue).length == 0
+        ) {
+          rowErrors.push(
+            attributeRules?.["emptyObjectError"] ||
+              `value {} not valid for attribute ${attributePath}`
+          );
+          addNextError = false;
+        }
+      }
+
+      //custom regex check
+      if (addNextError && ruleName === "regex") {
+        if (!isPassedRegex(attributeRules[ruleName], attributeValue)) {
+          rowErrors.push(
+            attributeRules?.["regexError"] ||
+              `${attributePath} failed to pass the regex ${attributeRules[ruleName]}`
+          );
+          addNextError = false;
+        }
+      }
+
+      //value type check
       if (addNextError && ruleName === "type") {
         if (attributeValue == null && nullAllowed) {
           addNextError = true;
@@ -59,7 +77,7 @@ export function dataValidatorV1(
               if (!isNumber(attributeValue)) {
                 rowErrors.push(
                   attributeRules?.["typeError"] ||
-                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required ${
+                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required ${
                       attributeRules[ruleName]
                     } value`
                 );
@@ -71,7 +89,7 @@ export function dataValidatorV1(
               if (!isString(attributeValue)) {
                 rowErrors.push(
                   attributeRules?.["typeError"] ||
-                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required ${
+                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required ${
                       attributeRules[ruleName]
                     } value`
                 );
@@ -82,7 +100,7 @@ export function dataValidatorV1(
               if (!isBoolean(attributeValue)) {
                 rowErrors.push(
                   attributeRules?.["typeError"] ||
-                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required ${
+                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required ${
                       attributeRules[ruleName]
                     } value`
                 );
@@ -93,7 +111,7 @@ export function dataValidatorV1(
               if (!isValidEmail(attributeValue)) {
                 rowErrors.push(
                   attributeRules?.["typeError"] ||
-                    `Invalid email ID(${attributeValue}) found in attribute ${attributeName}`
+                    `Invalid email ID(${attributeValue}) found in attribute ${attributePath}`
                 );
                 addNextError = false;
               }
@@ -103,7 +121,7 @@ export function dataValidatorV1(
               if (!isValidUrl(attributeValue)) {
                 rowErrors.push(
                   attributeRules?.["typeError"] ||
-                    `Invalid URL format(${attributeValue}) found in attribute ${attributeName}`
+                    `Invalid URL format(${attributeValue}) found in attribute ${attributePath}`
                 );
                 addNextError = false;
               }
@@ -114,7 +132,7 @@ export function dataValidatorV1(
               } else if (!isString(attributeValue)) {
                 rowErrors.push(
                   attributeRules?.["typeError"] ||
-                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required string value`
+                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required string value`
                 );
                 addNextError = false;
               } else {
@@ -122,7 +140,7 @@ export function dataValidatorV1(
                 if (!allEnumValues?.includes(attributeValue)) {
                   rowErrors.push(
                     attributeRules?.["typeError"] ||
-                      `Invalid value(${attributeValue}) found in attribute ${attributeName}, valid values are ${allEnumValues?.join(
+                      `Invalid value(${attributeValue}) found in attribute ${attributePath}, valid values are ${allEnumValues?.join(
                         ", "
                       )}`
                   );
@@ -136,19 +154,19 @@ export function dataValidatorV1(
               } else if (!isUUID(attributeValue)) {
                 rowErrors.push(
                   attributeRules?.["typeError"] ||
-                    `Invalid UUID(${attributeValue}) found in attribute ${attributeName}`
+                    `Invalid UUID(${attributeValue}) found in attribute ${attributePath}`
                 );
                 addNextError = false;
               }
               break;
-            case "objectid":
+            case "objectId":
               if (attributeValue == null && nullAllowed) {
                 addNextError = true;
               } else {
                 if (!isObjectId(attributeValue)) {
                   rowErrors.push(
                     attributeRules?.["typeError"] ||
-                      `Invalid ObjectId(${attributeValue}) found in attribute ${attributeName}`
+                      `Invalid ObjectId(${attributeValue}) found in attribute ${attributePath}`
                   );
                   addNextError = false;
                 }
@@ -159,7 +177,7 @@ export function dataValidatorV1(
               if (!isArray(attributeValue)) {
                 rowErrors.push(
                   attributeRules?.["typeError"] ||
-                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required ${
+                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required ${
                       attributeRules[ruleName]
                     } value`
                 );
@@ -171,7 +189,7 @@ export function dataValidatorV1(
               if (!isObject(attributeValue)) {
                 rowErrors.push(
                   attributeRules?.["typeError"] ||
-                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required ${
+                    `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required ${
                       attributeRules[ruleName]
                     } value`
                 );
@@ -183,31 +201,69 @@ export function dataValidatorV1(
               break;
           }
         }
-      } //preventFraction
+      }
 
+      //minimum string length check
+      if (addNextError && ruleName === "minLength") {
+        if (attributeValue == null && nullAllowed) {
+          addNextError = true;
+        } else if (typeof attributeValue == "string") {
+          if (attributeValue.length < +attributeRules[ruleName])
+            rowErrors.push(
+              attributeRules?.["minLengthError"] ||
+                `${attributePath} should be minimum of ${attributeRules[ruleName]} character`
+            );
+          addNextError = false;
+        } else {
+          throw new Error(
+            `perfect-payload:- minLength is applied only on string type values, found ${typeof attributeValue} type`
+          );
+        }
+      }
+
+      //max string length check
+      if (addNextError && ruleName === "maxLength") {
+        if (attributeValue == null && nullAllowed) {
+          addNextError = true;
+        } else if (typeof attributeValue == "string") {
+          if (attributeValue.length > +attributeRules[ruleName])
+            rowErrors.push(
+              attributeRules?.["maxLengthError"] ||
+                `${attributePath} can have maximum of ${attributeRules[ruleName]} character`
+            );
+          addNextError = false;
+        } else {
+          throw new Error(
+            `perfect-payload:- maxLength is applied only on string type values, found ${typeof attributeValue} type`
+          );
+        }
+      }
+
+      //preventFraction
       if (addNextError && ruleName === "preventDecimal") {
         if (attributeValue == null && nullAllowed) {
           addNextError = true;
         } else if (!isNumber(attributeValue)) {
           rowErrors.push(
-            `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required number value`
+            `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required number value`
           );
           addNextError = false;
         } else if (+attributeValue % 1 !== 0) {
           rowErrors.push(
             attributeRules?.["preventDecimalError"] ||
-              `Decimal value not allowed in attribute ${attributeName}(${attributeValue})`
+              `Decimal value not allowed in attribute ${attributePath}(${attributeValue})`
           );
           addNextError = false;
         }
-      } //minimum value  check
+      }
 
+      //minimum value  check
       if (addNextError && ruleName === "min") {
         if (attributeValue == null && nullAllowed) {
           addNextError = true;
         } else if (!isNumber(attributeValue)) {
           rowErrors.push(
-            `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required number value`
+            `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required number value`
           );
           addNextError = false;
         } else if (+attributeValue < +attributeRules[ruleName]) {
@@ -215,20 +271,21 @@ export function dataValidatorV1(
             attributeRules?.["minError"] ||
               `minimum value ${
                 attributeRules[ruleName]
-              } is allowed in attribute ${attributeName}, found value ${
+              } is allowed in attribute ${attributePath}, found value ${
                 data[attributeName] ?? "Nil"
               }`
           );
           addNextError = false;
         }
-      } //maximum value  check
+      }
 
+      //maximum value  check
       if (addNextError && ruleName === "max") {
         if (attributeValue == null && nullAllowed) {
           addNextError = true;
         } else if (!isNumber(attributeValue)) {
           rowErrors.push(
-            `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required number value`
+            `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required number value`
           );
           addNextError = false;
         } else if (+attributeValue > +attributeRules[ruleName]) {
@@ -236,20 +293,21 @@ export function dataValidatorV1(
             attributeRules?.["maxError"] ||
               `maximum value ${
                 attributeRules[ruleName]
-              } is allowed in attribute ${attributeName}, found value ${
+              } is allowed in attribute ${attributePath}, found value ${
                 data[attributeName] ?? "Nil"
               }`
           );
           addNextError = false;
         }
-      } //value range  check
+      }
 
+      //value range  check
       if (addNextError && ruleName === "range") {
         if (attributeValue == null && nullAllowed) {
           addNextError = true;
         } else if (!isNumber(attributeValue)) {
           rowErrors.push(
-            `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributeName}, required number value`
+            `Invalid ${typeof attributeValue} value(${attributeValue}) found in attribute ${attributePath}, required number value`
           );
           addNextError = false;
         } else {
@@ -261,28 +319,61 @@ export function dataValidatorV1(
           ) {
             rowErrors.push(
               attributeRules?.["rangeError"] ||
-                `Invalid values(${attributeValue}) found in attribute ${attributeName}, value should be between ${min} and ${max} `
+                `Invalid values(${attributeValue}) found in attribute ${attributePath}, value should be between ${min} and ${max} `
             );
             addNextError = false;
           }
         }
-      } //custom validation check
+      }
 
+      //nested object attributes check
+      if (addNextError && ruleName === "objectAttr") {
+        console.log({ attributeName });
+        const allObjectAttr = Object.keys(attributeRules?.[ruleName]);
+        const objectAttrRules = {};
+        for (const attr of allObjectAttr) {
+          objectAttrRules[attr] = {
+            ...attributeRules?.[ruleName]?.[attr],
+            path: attributeRules?.[ruleName]?.[attr]?.path
+              ? attributeRules?.[ruleName]?.[attr]?.path + `.${attr}`
+              : `${attributePath}`,
+          };
+        }
+
+        console.log({ attributeValue, objectAttrRules });
+        const { errors = [] } = dataValidatorV1(
+          attributeValue,
+          objectAttrRules
+        );
+        rowErrors = [...rowErrors, ...errors];
+        addNextError = true;
+      }
+
+      //dependency check
       if (addNextError && ruleName === "dependency") {
         const allDependencyAttr = Object.keys(attributeRules?.[ruleName]);
         for (const attr of allDependencyAttr) {
-          const newRule = attributeRules?.[ruleName]?.[attr]?.setDependencyRule(
-            attributeValue,
-            data?.[attr]
-          );
-
-          let newData = { [attributeName]: attributeValue };
-          if (Object.keys(data).includes(attr)) {
-            newData = { ...newData, [attr]: data?.[attr] };
+          if (
+            typeof attributeRules?.[ruleName]?.[attr]?.setDependencyRule ==
+            "function"
+          ) {
+            const newRule = attributeRules?.[ruleName]?.[
+              attr
+            ]?.setDependencyRule(attributeValue, data?.[attr]);
+            let newData = { [attributeName]: attributeValue };
+            if (Object.keys(data).includes(attr)) {
+              newData = { ...newData, [attr]: data?.[attr] };
+            }
+            const { errors = [] } = dataValidatorV1(newData, {
+              [attr]: newRule,
+            });
+            rowErrors = [...rowErrors, ...errors];
+            addNextError = true;
+          } else {
+            throw new Error(
+              `perfect-payload:- function setDependencyRule not found in ${attr} dependency `
+            );
           }
-          const { errors = [] } = dataValidatorV1(newData, { [attr]: newRule });
-          rowErrors = [...rowErrors, ...errors];
-          addNextError = true;
         }
       }
     }
@@ -334,4 +425,8 @@ function isUUID(uuid) {
 
 function isObjectId(id) {
   return /^[0-9a-fA-F]{24}$/.test(id);
+}
+
+function isPassedRegex(reExpression, value) {
+  return reExpression.test(value);
 }

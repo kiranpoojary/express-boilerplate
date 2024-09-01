@@ -1,15 +1,29 @@
-// Perfect-payload   Validation
-//DEFAULT VALUES IF NOT SPECIFIED
-// mandatory        	    : false
-// allowNull                : true
+//--------DEFAULT VALUES IF NOT SPECIFIED------------
+// mandatory            : false
+// allowNull            : true
 // type 		            : any
-// min              	    : ignored
-// max              	    : ignored
-// preventDecimal   	    : false
-// enum             	    : ignored
-// range            	    : ignored
-// dependecy 	            : a function which
-
+// min                  : ignored
+// max                  : ignored
+// preventDecimal       : false
+// enum                 : ignored
+// range                : ignored
+// dependecy 	          : ignored
+//
+// ******************************************************************************
+//
+// ---------Custom Error Message Attributes---------
+// mandatoryError       : string
+// allowNullError       : string
+// typeError            : string
+// preventDecimalError  : string
+// minError             : string
+// maxError             : string
+// regexError           : string
+// minLengthError       : string
+// maxLengthError       : string
+// emptyObjectError     : string
+// ******************************************************************************
+//
 export const EXAMPLE_VALIDATION_RULE = {
   id: {
     mandatory: true,
@@ -19,12 +33,14 @@ export const EXAMPLE_VALIDATION_RULE = {
   batchId: {
     mandatory: true,
     allowNull: true,
-    type: "objectid",
+    type: "objectId",
   },
   firstName: {
     mandatory: true,
     allowNull: false,
     type: "string",
+    minLength: 3,
+    maxLength: 6,
   },
   lastName: {
     mandatory: false,
@@ -36,6 +52,9 @@ export const EXAMPLE_VALIDATION_RULE = {
     min: 0.1,
     max: 120,
   },
+  isAdult: {
+    type: "boolean",
+  },
   totalWins: {
     type: "number",
     min: 0,
@@ -43,6 +62,7 @@ export const EXAMPLE_VALIDATION_RULE = {
   },
   email: {
     type: "email",
+    regex: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
   },
   githubLink: {
     type: "url",
@@ -75,11 +95,17 @@ export const EXAMPLE_VALIDATION_RULE = {
     },
   },
   minSalary: {
+    mandatory: true,
+    min: 1,
     type: "number",
     dependency: {
       maxSalary: {
         setDependencyRule: (minSalary, maxSalary) => {
-          return { mandatory: true, min: minSalary + 1 };
+          return {
+            mandatory: true,
+            min: minSalary + 1,
+            minError: "maxSalary must be more than minSalary",
+          };
         },
       },
     },
@@ -88,7 +114,40 @@ export const EXAMPLE_VALIDATION_RULE = {
     dependency: {
       minSalary: {
         setDependencyRule: (maxSalary, minSalary) => {
-          return { mandatory: true, max: maxSalary - 1 };
+          return {
+            mandatory: true,
+            max: maxSalary - 1,
+            maxError: "minSalary must be less than maxSalary",
+          };
+        },
+      },
+    },
+  },
+  address: {
+    mandatory: true,
+    type: "object",
+    allowEmptyObject: false,
+    objectAttr: {
+      country: { mandatory: true, type: "string" },
+      state: {
+        mandatory: true,
+        type: "string",
+      },
+      city: {},
+      zip: {
+        mandatory: true,
+        type: "string",
+      },
+      position: {
+        mandatory: true,
+        type: "object",
+        allowEmptyObject: false,
+        objectAttr: {
+          lattitude: { mandatory: true, type: "number" },
+          longitude: {
+            mandatory: true,
+            type: "number",
+          },
         },
       },
     },
