@@ -1,8 +1,39 @@
-"use strict";
-import { Model, DataTypes } from "sequelize";
+// 👇👇the below commented code is commonjs, check below converted module JS code
+// 'use strict';
+// const {
+//   Model
+// } = require('sequelize');
+// module.exports = (sequelize, DataTypes) => {
+//   class users extends Model {
+//     /**
+//      * Helper method for defining associations.
+//      * This method is not a part of Sequelize lifecycle.
+//      * The `models/index` file will call this method automatically.
+//      */
+//     static associate(models) {
+//       // define association here
+//     }
+//   }
+//   users.init({
+//     fullName: DataTypes.STRING,
+//     email: DataTypes.STRING,
+//     age: DataTypes.INTEGER,
+//     isEmailverified: DataTypes.BOOLEAN,
+//     address: DataTypes.JSONB,
+//     roleId: DataTypes.UUID,
+//     bio: DataTypes.TEXT
+//   }, {
+//     sequelize,
+//     modelName: 'users',
+//   });
+//   return users;
+// };
 
-// Define the User model
-export default (sequelize) => {
+//
+
+// 👇👇 converted module JS code
+import { Model } from "sequelize";
+export default (sequelize, DataTypes) => {
   class Users extends Model {
     /**
      * Helper method for defining associations.
@@ -10,7 +41,7 @@ export default (sequelize) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // Define association here
+      // Define associations here
     }
   }
 
@@ -21,20 +52,10 @@ export default (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      fullName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      email: {
-        type: DataTypes.STRING,
-        unique: true,
-        allowNull: false,
-      },
+      fullName: DataTypes.STRING,
+      email: DataTypes.STRING,
       age: DataTypes.INTEGER,
-      isEmailverified: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
+      isEmailverified: DataTypes.BOOLEAN,
       address: DataTypes.JSONB,
       roleId: DataTypes.UUID,
       bio: DataTypes.TEXT,

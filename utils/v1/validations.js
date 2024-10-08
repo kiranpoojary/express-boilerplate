@@ -50,8 +50,12 @@ export const EXAMPLE_VALIDATION_RULE = {
   },
   allMarks: {
     type: "array",
-    elementType: "string",
     allowEmptyArray: false,
+    elementConstraints: {
+      type: "number",
+      allowNull: false,
+      range: "0-100",
+    },
   },
   totalScore: {
     type: "number",
